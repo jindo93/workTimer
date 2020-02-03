@@ -1,8 +1,9 @@
 import React from 'react';
-import { Text, View, TouchableOpacity } from 'react-native';
+import { Text, View, AppState } from 'react-native';
 import HomeViewStyles from './HomeViewStyles';
 import i18n from '../../i18n/i18n';
-import moment from 'moment';
+import StopWatchButton from '../StopWatchButton/StopWatchButton';
+import AsyncStorage from '@react-native-community/async-storage';
 
 class HomeView extends React.Component {
 
@@ -11,60 +12,68 @@ class HomeView extends React.Component {
         this.state = {
             time: 0,
         };
+        this.startTimer = this.startTimer.bind(this);
+        this.pauseTimer = this.pauseTimer.bind(this);
+        this.handleAppStateChange = this.handleAppStateChange.bind(this);
     }
 
+    async handleAppStateChange(nextAppState) {
+        console.log('nextAppState', nextAppState);
 
-    renderStartButton() {
-        return (
-            <TouchableOpacity
-                style={HomeViewStyles.mainActionButton}
-                onPress={() => {
-                    setInterval(() => {
-                        const { time, paused } = this.state;
-                        if (!paused) {
-                            this.setState({
-                                time: time + 1000,
-                            });
-                        }
-                    }, 1000);
-                }}>
-                <Text style={HomeViewStyles.mainActionButtonText}>
-                    {i18n.HOME.START}
-                </Text>
-            </TouchableOpacity>
+        const now = new Date().getTime();
+        const {time} = this.state;
+
+        const readTime = parseInt(await AsyncStorage.getItem('@time'));
+        const readStateChangeTimestamp = parseInt(
+            await AsyncStorage.getItem('@appStateChangedTimestamp')
         );
+        console.log('stored data', readStateChangeTimestamp, readTime);
+        
+        const timeDifference = now - readStateChangeTimestamp;
+        const newTime = readTime + timeDifference;
+        console.log('new time', newTime);
+
+        if (nextAppState === 'active') {
+            this.setState({
+                time: newTime
+            },
+            //this.startTimer,
+            );
+        }
+
+        await AsyncStorage.setItem('@time', String(time));
+        await AsyncStorage.setItem('@appStateChangedTimestamp', String(now));
     }
 
-    renderRunningTimer() {
-        const { time } = this.state;
-
-        return (
-            <TouchableOpacity
-                style={HomeViewStyles.mainActionButton}
-                onPress={() => {
-                    console.log('button pressed');
-                    const { paused } = this.state;
-                    this.setState({
-                        paused: !paused
-                    });
-                }}>
-                <Text style={HomeViewStyles.mainActionButtonText}>
-                    {moment.utc(time).format('HH:mm:ss')}
-                </Text>
-                <Text
-                    style={[
-                        HomeViewStyles.mainActionButtonText,
-                        HomeViewStyles.mainActionButtonPauseText
-                    ]}>
-                        {i18n.HOME.PAUSE}
-                </Text>
-            </TouchableOpacity>
-        );
+    componentDidMount() {
+        AppState.addEventListener('change', this.handleAppStateChange);
     }
 
+    componentWillUnmount() {
+        AppState.removeEventListener('change', this.handleAppStateChange);
+    }
+
+    startTimer() {
+        setInterval(() => {
+            const { time, paused } = this.state;
+            if (!paused) {
+                this.setState({
+                    time: time + 1000,
+                });
+            }
+        }, 1000);
+    }
+
+    pauseTimer() {
+        const { paused } = this.state;
+        this.setState({
+            paused: !paused
+        });
+    }
+    
     render() {
         const { time } = this.state;
-
+        
         return (
             <View style={[{ flex: 1 }, HomeViewStyles.HomeViewContainer]}>
                 <View style={{ flex: 1 }}>
@@ -73,7 +82,11 @@ class HomeView extends React.Component {
                     </Text>
                 </View>
                 <View style={{ flex: 2 }}>
-                    {time > 0 ? this.renderRunningTimer() : this.renderStartButton()}
+                    <StopWatchButton 
+                        time={time}
+                        onPressStartAction={this.startTimer}
+                        onPressTimerAction={this.pauseTimer}
+                    />
                 </View>
             </View>
         );

@@ -12,26 +12,6 @@ const HomeViewStyles = StyleSheet.create({
         fontSize: 40,
         color: '#000'
     },
-
-    mainActionButton: {
-        width: 284,
-        height: 284,
-        borderRadius: 142,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#00CD5E'
-    },
-
-    mainActionButtonText: {
-        fontSize: 60,
-        color: '#FFF',
-        fontWeight: 'bold'
-    },
-
-    mainActionButtonPauseText: {
-        fontSize: 24,
-    }
-
 });
 
 export default HomeViewStyles;
