@@ -5,7 +5,7 @@ const HomeViewStyles = StyleSheet.create({
     HomeViewContainer: {
         alignItems: 'center'
     },
-    
+
     welcomeHeader: {
         marginTop:50,
         textAlign: 'center',
@@ -26,6 +26,10 @@ const HomeViewStyles = StyleSheet.create({
         fontSize: 60,
         color: '#FFF',
         fontWeight: 'bold'
+    },
+
+    mainActionButtonPauseText: {
+        fontSize: 24,
     }
 
 });
